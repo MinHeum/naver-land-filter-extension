@@ -5,8 +5,7 @@
   "description": "네이버 부동산 지도에서 추가 필터링 기능을 제공하는 Chrome 확장 프로그램",
   "permissions": [
     "activeTab",
-    "storage",
-    "contextMenus"
+    "storage"
   ],
   "host_permissions": [
     "https://new.land.naver.com/*"

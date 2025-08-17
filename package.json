@@ -4,11 +4,9 @@
   "description": "네이버 부동산 지도에서 추가 필터링 기능을 제공하는 Chrome 확장 프로그램",
   "main": "content.js",
   "scripts": {
-    "build": "echo 'Chrome 확장 프로그램은 별도 빌드 과정이 필요하지 않습니다.'",
-    "dev": "echo 'Chrome 확장 프로그램을 개발자 모드로 로드하세요.'",
-    "test": "echo '테스트는 Chrome 확장 프로그램 관리 페이지에서 진행하세요.'",
-    "lint": "echo 'ESLint 설정이 필요합니다.'",
-    "format": "echo 'Prettier 설정이 필요합니다.'"
+    "build": "echo \"Chrome 확장 프로그램은 별도 빌드 과정이 필요하지 않습니다.\"",
+    "dev": "echo \"Chrome 확장 프로그램을 개발자 모드로 로드하세요.\"",
+    "test": "echo \"테스트는 Chrome 확장 프로그램 관리 페이지에서 진행하세요.\""
   },
   "keywords": [
     "chrome-extension",
@@ -20,24 +18,25 @@
     "네이버",
     "필터"
   ],
-  "author": "Your Name <your-email@example.com>",
+  "author": "Minheum <plutokor@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/naver-land-filter.git"
+    "url": "https://github.com/MinHeum/naver-land-filter-extension.git"
   },
   "bugs": {
-    "url": "https://github.com/your-username/naver-land-filter/issues"
+    "url": "https://github.com/MinHeum/naver-land-filter-extension/issues"
   },
-  "homepage": "https://github.com/your-username/naver-land-filter#readme",
+  "homepage": "https://github.com/MinHeum/naver-land-filter-extension#readme",
   "devDependencies": {
     "eslint": "^8.0.0",
     "prettier": "^2.8.0"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=18.0.0"
   },
   "browserslist": [
     "Chrome >= 88"
-  ]
+  ],
+  "packageManager": "yarn@4.9.2"
 }

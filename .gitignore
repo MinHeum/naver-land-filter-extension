@@ -1,4 +1,4 @@
-# Chrome Extension 개발 관련
+# Chrome Extension 관련
 *.crx
 *.pem
 *.zip
@@ -46,16 +46,9 @@ out/
 coverage/
 .nyc_output/
 
-# ESLint 캐시
+# ESLint / Prettier 캐시
 .eslintcache
-
-# Prettier 캐시
 .prettiercache
-
-# Chrome 확장 프로그램 개발 관련
-*.crx
-*.pem
-*.zip
 
 # 로컬 설정 파일
 config.local.js
@@ -70,3 +63,10 @@ settings.local.json
 *.tar.gz
 *.rar
 *.7z
+
+# Yarn 4 (Berry)
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
