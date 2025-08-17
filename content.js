@@ -15,15 +15,40 @@ class NaverLandFilter {
   }
 
   injectFilterUI() {
-    // 기존 필터 영역 찾기
-    const existingFilters = document.querySelector('.filter_area, .filter-container, [class*="filter"]');
+    // 기존 필터 그룹들을 찾기
+    const existingFilterGroups = document.querySelectorAll('.filter_group');
     
-    if (existingFilters) {
-      this.createFilterPanel(existingFilters);
+    if (existingFilterGroups.length > 0) {
+      // 마지막 필터 그룹의 오른쪽에 새로운 필터 그룹 삽입
+      const lastFilterGroup = existingFilterGroups[existingFilterGroups.length - 1];
+      this.createFilterGroup(lastFilterGroup);
     } else {
-      // 필터 영역을 찾을 수 없는 경우, 페이지 상단에 주입
-      this.createFilterPanel(document.body);
+      // 필터 그룹을 찾을 수 없는 경우, 기존 방식으로 주입
+      const existingFilters = document.querySelector('.filter_area, .filter-container, [class*="filter"]');
+      
+      if (existingFilters) {
+        this.createFilterPanel(existingFilters);
+      } else {
+        this.createFilterPanel(document.body);
+      }
     }
+  }
+
+  createFilterGroup(targetFilterGroup) {
+    // 새로운 필터 그룹 div 생성
+    const newFilterGroup = document.createElement('div');
+    newFilterGroup.className = 'filter_group naver-land-filter-group';
+    newFilterGroup.style.cssText = `
+      display: inline-block;
+      margin-left: 10px;
+      vertical-align: top;
+    `;
+    
+    // 필터 패널 생성
+    this.createFilterPanel(newFilterGroup);
+    
+    // 마지막 필터 그룹 다음에 삽입
+    targetFilterGroup.parentNode.insertBefore(newFilterGroup, targetFilterGroup.nextSibling);
   }
 
   createFilterPanel(targetElement) {
