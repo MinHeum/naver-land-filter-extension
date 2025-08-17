@@ -591,12 +591,20 @@ class NaverLandFilter {
       });
 
       // 새로운 매물이 추가되었으면 필터 적용
-      if (hasNewListings && this.hasActiveFilters()) {
-        console.log("[NLF] 새로 추가된 매물에 필터 적용 중...");
-        setTimeout(() => {
-          this.filterListings();
-          this.updateFilterCount();
-        }, 100); // 짧은 지연으로 DOM 업데이트 완료 보장
+      if (hasNewListings) {
+        if (this.hasActiveFilters()) {
+          console.log("[NLF] 새로 추가된 매물에 필터 적용 중...");
+          setTimeout(() => {
+            this.filterListings();
+            this.updateFilterCount();
+          }, 100); // 짧은 지연으로 DOM 업데이트 완료 보장
+        } else {
+          // 활성화된 필터가 없어도 매물 개수는 업데이트
+          console.log("[NLF] 새로운 매물 감지, 개수 업데이트 중...");
+          setTimeout(() => {
+            this.updateFilterCount();
+          }, 100);
+        }
       }
     };
 
