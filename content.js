@@ -2,6 +2,8 @@
 class NaverLandFilter {
   constructor() {
     this.filters = {};
+    this.statusIndicator = null;
+    this.mutationObserver = null; // MutationObserver 추가
     this.init();
   }
 
@@ -15,109 +17,118 @@ class NaverLandFilter {
   }
 
   injectFilterUI() {
-    // 기존 필터 그룹들을 찾기
-    const existingFilterGroups = document.querySelectorAll('.filter_group');
-    
-    if (existingFilterGroups.length > 0) {
-      // 마지막 필터 그룹의 오른쪽에 새로운 필터 그룹 삽입
-      const lastFilterGroup = existingFilterGroups[existingFilterGroups.length - 1];
-      this.createFilterGroup(lastFilterGroup);
-    } else {
-      // 필터 그룹을 찾을 수 없는 경우, 기존 방식으로 주입
-      const existingFilters = document.querySelector('.filter_area, .filter-container, [class*="filter"]');
-      
-      if (existingFilters) {
-        this.createFilterPanel(existingFilters);
-      } else {
-        this.createFilterPanel(document.body);
-      }
+    // 기존 필터 그룹을 찾고, 그 뒤에 커스텀 필터 그룹을 추가
+    const filterGroup = document.querySelector('#complex_etc_type_filter');
+    if (filterGroup) {
+      this.createFilterPanel();
+      this.createStatusIndicator();
+      this.setupMutationObserver(); // MutationObserver 설정
     }
   }
 
-  createFilterGroup(targetFilterGroup) {
-    // 새로운 필터 그룹 div 생성
-    const newFilterGroup = document.createElement('div');
-    newFilterGroup.className = 'filter_group naver-land-filter-group';
-    newFilterGroup.style.cssText = `
-      display: inline-block;
-      margin-left: 10px;
-      vertical-align: top;
-    `;
-    
-    // 필터 패널 생성
-    this.createFilterPanel(newFilterGroup);
-    
-    // 마지막 필터 그룹 다음에 삽입
-    targetFilterGroup.parentNode.insertBefore(newFilterGroup, targetFilterGroup.nextSibling);
-  }
-
-  createFilterPanel(targetElement) {
+  createFilterPanel() {
+    console.log('[NLF] createFilterPanel 진입');
     const filterPanel = document.createElement('div');
     filterPanel.id = 'naver-land-filter-panel';
     filterPanel.className = 'naver-land-filter-panel';
-    
+
     filterPanel.innerHTML = `
       <div class="filter-header">
-        <h3>🔍 추가 필터</h3>
-        <button class="filter-toggle">접기</button>
+        <h3>🔍추가 필터</h3>
+        <button class="filter-toggle">펼치기</button>
       </div>
       <div class="filter-content">
-        <div class="filter-row">
-          <label>거래 유형:</label>
-          <select id="transaction-type">
-            <option value="">전체</option>
-            <option value="sale">매매</option>
-            <option value="rent">전세</option>
-            <option value="monthly">월세</option>
-          </select>
-        </div>
-        <div class="filter-row">
-          <label>면적 범위:</label>
-          <select id="area-range">
-            <option value="">전체</option>
-            <option value="small">20평 이하</option>
-            <option value="medium">20-40평</option>
-            <option value="large">40평 이상</option>
-          </select>
-        </div>
-        <div class="filter-row">
-          <label>건물 연식:</label>
-          <select id="building-age">
-            <option value="">전체</option>
-            <option value="new">5년 이하</option>
-            <option value="recent">5-15년</option>
-            <option value="old">15년 이상</option>
-          </select>
-        </div>
-        <div class="filter-row">
-          <label>주차 가능:</label>
-          <input type="checkbox" id="parking-available">
-        </div>
-        <div class="filter-row">
-          <label>엘리베이터:</label>
-          <input type="checkbox" id="elevator-available">
+        <div class="filter-section">
+          <h4>숨길 옵션들</h4>
+          <div class="nlf-floor-filter-options">
+            <div class="nlf-floor-filter-option">
+              <input type="checkbox" id="hide-basement" value="basement" style="display: block !important; visibility: visible !important; opacity: 1 !important; width: 18px !important; height: 18px !important;">
+              <label for="hide-basement">반지하 및 지하층 (B1, 저층 등)</label>
+            </div>
+            <div class="nlf-floor-filter-option">
+              <input type="checkbox" id="hide-high-floor" value="high-floor" style="display: block !important; visibility: visible !important; opacity: 1 !important; width: 18px !important; height: 18px !important;">
+              <label for="hide-high-floor">고층 (고/층, 최상층 등)</label>
+            </div>
+          </div>
         </div>
         <div class="filter-actions">
-          <button id="apply-filters" class="apply-btn">필터 적용</button>
           <button id="reset-filters" class="reset-btn">초기화</button>
         </div>
       </div>
     `;
 
-    // 필터 패널을 기존 필터 영역 다음에 삽입
-    if (targetElement === document.body) {
-      const header = document.querySelector('header, .header, [class*="header"]');
-      if (header) {
-        header.parentNode.insertBefore(filterPanel, header.nextSibling);
-      } else {
-        document.body.insertBefore(filterPanel, document.body.firstChild);
-      }
+    // DOM에 필터 패널 추가
+    const filterGroup = document.querySelector('#complex_etc_type_filter');
+    if (filterGroup && filterGroup.parentNode) {
+      filterGroup.parentNode.insertBefore(filterPanel, filterGroup.nextSibling);
+      console.log('[NLF] 필터 패널이 기존 필터 그룹 옆에 추가되었습니다.');
     } else {
-      targetElement.parentNode.insertBefore(filterPanel, targetElement.nextSibling);
+      // 대체 위치들을 순서대로 시도
+      const alternativeSelectors = [
+        '.filter_area',
+        '.complex_filter_wrap', 
+        '.filter_wrap',
+        '#wrap',
+        'body'
+      ];
+      
+      let targetContainer = null;
+      for (const selector of alternativeSelectors) {
+        targetContainer = document.querySelector(selector);
+        if (targetContainer) {
+          console.log(`[NLF] 대체 위치 ${selector}에 필터 패널을 추가합니다.`);
+          break;
+        }
+      }
+      
+      if (targetContainer) {
+        targetContainer.appendChild(filterPanel);
+      } else {
+        console.error('[NLF] 필터 패널을 추가할 적절한 위치를 찾을 수 없습니다.');
+        return;
+      }
     }
+
+    // 체크박스 가시성 강제 보장
+    setTimeout(() => {
+      const basementCheckbox = document.getElementById('hide-basement');
+      const highFloorCheckbox = document.getElementById('hide-high-floor');
+      
+      const checkboxStyle = `
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        width: 18px !important;
+        height: 18px !important;
+        margin: 0 !important;
+        position: relative !important;
+        z-index: 10 !important;
+        appearance: auto !important;
+        -webkit-appearance: checkbox !important;
+        -moz-appearance: checkbox !important;
+        border: 2px solid #ccc !important;
+        background-color: white !important;
+      `;
+      
+      if (basementCheckbox) {
+        basementCheckbox.style.cssText = checkboxStyle;
+        console.log('[NLF] 지하층 체크박스 스타일이 강제로 적용되었습니다.');
+      }
+      
+      if (highFloorCheckbox) {
+        highFloorCheckbox.style.cssText = checkboxStyle;
+        console.log('[NLF] 고층 체크박스 스타일이 강제로 적용되었습니다.');
+      }
+    }, 100);
 
     this.bindEvents(filterPanel);
     this.loadSavedFilters();
+  }
+
+  createStatusIndicator() {
+    this.statusIndicator = document.createElement('div');
+    this.statusIndicator.className = 'nlf-filter-status-indicator';
+    document.body.appendChild(this.statusIndicator);
   }
 
   bindEvents(filterPanel) {
@@ -126,95 +137,269 @@ class NaverLandFilter {
     const content = filterPanel.querySelector('.filter-content');
     
     toggleBtn.addEventListener('click', () => {
-      const isVisible = content.style.display !== 'none';
-      content.style.display = isVisible ? 'none' : 'block';
-      toggleBtn.textContent = isVisible ? '펼치기' : '접기';
+      const isExpanded = content.classList.contains('expanded');
+      
+      if (isExpanded) {
+        content.classList.remove('expanded');
+        toggleBtn.textContent = '펼치기';
+      } else {
+        content.classList.add('expanded');
+        toggleBtn.textContent = '접기';
+      }
     });
 
-    // 필터 적용 버튼
-    const applyBtn = filterPanel.querySelector('#apply-filters');
-    applyBtn.addEventListener('click', () => this.applyFilters());
+    // filter-content 외부 클릭 시 필터 접기
+    document.addEventListener('click', (e) => {
+      const isClickInsidePanel = filterPanel.contains(e.target);
+      const isExpanded = content.classList.contains('expanded');
+      
+      if (!isClickInsidePanel && isExpanded) {
+        content.classList.remove('expanded');
+        toggleBtn.textContent = '펼치기';
+      }
+    });
+
+    // 층수 필터 옵션 클릭 이벤트 - 실시간 적용 및 저장
+    const floorOptions = filterPanel.querySelectorAll('.nlf-floor-filter-option');
+    floorOptions.forEach(option => {
+      const checkbox = option.querySelector('input[type="checkbox"]');
+      const label = option.querySelector('label');
+      
+      // 옵션 전체(div) 클릭 시 체크박스 토글
+      option.addEventListener('click', (e) => {
+        // 체크박스나 라벨을 직접 클릭한 경우가 아닐 때만 토글
+        if (e.target.type !== 'checkbox' && e.target.tagName !== 'LABEL') {
+          checkbox.checked = !checkbox.checked;
+          this.updateOptionState(option, checkbox);
+          this.applyFiltersRealtime();
+          this.saveFilters();
+        }
+      });
+      
+      // 라벨 클릭 시 체크박스 토글 (명시적 처리)
+      label.addEventListener('click', (e) => {
+        e.preventDefault(); // 기본 라벨 동작 방지
+        checkbox.checked = !checkbox.checked;
+        this.updateOptionState(option, checkbox);
+        this.applyFiltersRealtime();
+        this.saveFilters();
+      });
+      
+      // 체크박스 직접 클릭 시 처리
+      checkbox.addEventListener('change', (e) => {
+        this.updateOptionState(option, checkbox);
+        this.applyFiltersRealtime();
+        this.saveFilters();
+      });
+    });
 
     // 필터 초기화 버튼
     const resetBtn = filterPanel.querySelector('#reset-filters');
     resetBtn.addEventListener('click', () => this.resetFilters());
+  }
 
-    // 개별 필터 변경 감지
-    const filterInputs = filterPanel.querySelectorAll('select, input[type="checkbox"]');
-    filterInputs.forEach(input => {
-      input.addEventListener('change', () => this.saveFilters());
-    });
+  updateOptionState(option, checkbox) {
+    if (checkbox.checked) {
+      option.classList.add('checked');
+    } else {
+      option.classList.remove('checked');
+    }
+  }
+
+  applyFiltersRealtime() {
+    // 현재 필터 값들을 수집
+    this.filters = {
+      hideBasement: document.getElementById('hide-basement').checked,
+      hideHighFloor: document.getElementById('hide-high-floor').checked
+    };
+
+    // 필터 적용 로직
+    this.filterListings();
+    
+    // 상태 표시 업데이트 (알림 없이)
+    const activeFilters = [];
+    if (this.filters.hideBasement) activeFilters.push('반지하 및 지하층');
+    if (this.filters.hideHighFloor) activeFilters.push('고층');
+    
+    this.updateStatusIndicator(activeFilters);
+    this.updateFilterCount(); // 필터 개수 업데이트 추가
   }
 
   applyFilters() {
     // 현재 필터 값들을 수집
     this.filters = {
-      transactionType: document.getElementById('transaction-type').value,
-      areaRange: document.getElementById('area-range').value,
-      buildingAge: document.getElementById('building-age').value,
-      parkingAvailable: document.getElementById('parking-available').checked,
-      elevatorAvailable: document.getElementById('elevator-available').checked
+      hideBasement: document.getElementById('hide-basement').checked,
+      hideHighFloor: document.getElementById('hide-high-floor').checked
     };
 
-    // 필터 적용 로직 (실제 구현은 네이버 부동산 API에 따라 달라질 수 있음)
+    // 필터 적용 로직
     this.filterListings();
     
-    // 사용자에게 알림
-    this.showNotification('필터가 적용되었습니다!');
+    // 사용자에게 알림 및 상태 표시
+    const activeFilters = [];
+    if (this.filters.hideBasement) activeFilters.push('반지하 및 지하층');
+    if (this.filters.hideHighFloor) activeFilters.push('고층');
+    
+    if (activeFilters.length > 0) {
+      this.showNotification(`${activeFilters.join(', ')} 필터가 적용되었습니다!`);
+      this.updateStatusIndicator(activeFilters);
+    } else {
+      this.showNotification('모든 필터가 해제되었습니다!');
+      this.updateStatusIndicator([]);
+    }
   }
 
   filterListings() {
-    // 여기에 실제 필터링 로직을 구현
-    // 네이버 부동산의 매물 목록을 필터링하는 코드
     console.log('적용된 필터:', this.filters);
     
-    // 예시: 매물 목록 요소들을 찾아서 필터링
-    const listings = document.querySelectorAll('[class*="item"], [class*="listing"], [class*="property"]');
+    // 네이버 부동산 매물 목록 요소들을 찾기 - 실제 구조에 맞게 수정
+    const listings = document.querySelectorAll('.item_list .item');
+    let hiddenCount = 0;
+    let totalCount = listings.length;
     
     listings.forEach(listing => {
-      // 필터 조건에 맞지 않는 매물은 숨김
-      if (!this.matchesFilters(listing)) {
-        listing.style.display = 'none';
-      } else {
-        listing.style.display = '';
+      // 기존 필터 클래스 제거
+      listing.classList.remove('naver-land-hidden');
+      
+      const floorInfo = this.extractFloorInfo(listing);
+      
+      // 디버깅용 층수 정보 표시
+      if (floorInfo.floor !== null || floorInfo.isBasement) {
+        console.log('매물 층수:', floorInfo);
+      }
+      
+      if (this.shouldHideListing(listing, floorInfo)) {
+        listing.classList.add('naver-land-hidden');
+        hiddenCount++;
       }
     });
+    
+    console.log(`총 ${totalCount}개 매물 중 ${hiddenCount}개 숨김 처리`);
   }
 
-  matchesFilters(listing) {
-    // 실제 구현에서는 매물의 상세 정보를 파싱하여 필터 조건과 비교
-    // 현재는 기본적인 예시만 구현
-    return true;
+  shouldHideListing(listing, floorInfo) {
+    // 지하층 필터링
+    if (this.filters.hideBasement && floorInfo.isBasement) {
+      return true;
+    }
+    
+    // 고층 필터링
+    if (this.filters.hideHighFloor && floorInfo.isHighFloor) {
+      return true;
+    }
+    
+    return false;
+  }
+
+  extractFloorInfo(listing) {
+    const floorInfo = {
+      isBasement: false,
+      isHighFloor: false,
+      floor: null,
+      rawText: ''
+    };
+    
+    try {
+      // 네이버 부동산의 실제 구조에서 층수 정보 추출
+      const specElement = listing.querySelector('.spec');
+      
+      if (specElement) {
+        const specText = specElement.textContent.trim();
+        floorInfo.rawText = specText;
+        
+        // "B1/4층", "5/6층", "고/5층", "저/4층" 등의 패턴 분석
+        const floorMatch = specText.match(/([B]?\d+|고|저|중)\/(\d+)층/);
+        
+        if (floorMatch) {
+          const currentFloor = floorMatch[1];
+          const totalFloors = parseInt(floorMatch[2]);
+          
+          // 지하층 체크 (B1, B2 등)
+          if (currentFloor.startsWith('B')) {
+            floorInfo.isBasement = true;
+            floorInfo.floor = -parseInt(currentFloor.substring(1));
+          } 
+          // 일반층 체크
+          else if (/^\d+$/.test(currentFloor)) {
+            const floor = parseInt(currentFloor);
+            floorInfo.floor = floor;
+            if (floor === totalFloors) {
+              floorInfo.isHighFloor = true;
+            }
+          }
+          // "저층" 표시
+          else if (currentFloor === '저') {
+            floorInfo.isBasement = true;
+            floorInfo.floor = 1; // 대략적인 값
+          }
+          // "고층" 표시
+          else if (currentFloor === '고') {
+            floorInfo.isHighFloor = true;
+            floorInfo.floor = totalFloors; // 대략적인 값
+          }
+        }
+        
+        // 추가 패턴들
+        // "1층", "지하1층" 등의 단독 패턴
+        const singleFloorMatch = specText.match(/(지하|B)(\d+)층?|(\d+)층/);
+        if (singleFloorMatch && !floorMatch) {
+          if (singleFloorMatch[1]) { // 지하층
+            floorInfo.isBasement = true;
+            floorInfo.floor = -parseInt(singleFloorMatch[2]);
+          } else if (singleFloorMatch[3]) { // 일반층
+            const floor = parseInt(singleFloorMatch[3]);
+            floorInfo.floor = floor;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('[NLF] 층수 정보 추출 중 오류:', error);
+    }
+    
+    return floorInfo;
+  }
+
+  updateStatusIndicator(activeFilters) {
+    if (!this.statusIndicator) return;
+    
+    if (activeFilters.length > 0) {
+      this.statusIndicator.textContent = `필터 적용중: ${activeFilters.join(', ')}`;
+      this.statusIndicator.classList.add('active');
+    } else {
+      this.statusIndicator.classList.remove('active');
+    }
   }
 
   resetFilters() {
     // 모든 필터를 초기값으로 리셋
-    document.getElementById('transaction-type').value = '';
-    document.getElementById('area-range').value = '';
-    document.getElementById('building-age').value = '';
-    document.getElementById('parking-available').checked = false;
-    document.getElementById('elevator-available').checked = false;
+    document.getElementById('hide-basement').checked = false;
+    document.getElementById('hide-high-floor').checked = false;
+    
+    // 체크박스 옵션들의 시각적 상태도 리셋
+    const floorOptions = document.querySelectorAll('.nlf-floor-filter-option');
+    floorOptions.forEach(option => {
+      option.classList.remove('checked');
+    });
     
     this.filters = {};
     this.saveFilters();
     
-    // 숨겨진 매물들을 다시 표시
-    const listings = document.querySelectorAll('[class*="item"], [class*="listing"], [class*="property"]');
+    // 숨겨진 매물들을 다시 표시하고 필터 클래스 제거
+    const listings = document.querySelectorAll('.item_list .item');
     listings.forEach(listing => {
-      listing.style.display = '';
+      listing.classList.remove('naver-land-hidden', 'nlf-basement-floor');
     });
     
+    this.updateStatusIndicator([]);
+    this.updateFilterCount(); // 필터 개수 업데이트 추가
     this.showNotification('필터가 초기화되었습니다!');
   }
 
   saveFilters() {
     // 필터 설정을 로컬 스토리지에 저장
     const filtersToSave = {
-      transactionType: document.getElementById('transaction-type').value,
-      areaRange: document.getElementById('area-range').value,
-      buildingAge: document.getElementById('building-age').value,
-      parkingAvailable: document.getElementById('parking-available').checked,
-      elevatorAvailable: document.getElementById('elevator-available').checked
+      hideBasement: document.getElementById('hide-basement') ? document.getElementById('hide-basement').checked : false,
+      hideHighFloor: document.getElementById('hide-high-floor') ? document.getElementById('hide-high-floor').checked : false
     };
     
     chrome.storage.local.set({ 'naverLandFilters': filtersToSave });
@@ -226,23 +411,30 @@ class NaverLandFilter {
       if (result.naverLandFilters) {
         const filters = result.naverLandFilters;
         
-        if (filters.transactionType) {
-          document.getElementById('transaction-type').value = filters.transactionType;
+        if (filters.hideBasement) {
+          const basementCheckbox = document.getElementById('hide-basement');
+          const basementOption = basementCheckbox.closest('.nlf-floor-filter-option');
+          if (basementCheckbox && basementOption) {
+            basementCheckbox.checked = true;
+            basementOption.classList.add('checked');
+          }
         }
-        if (filters.areaRange) {
-          document.getElementById('area-range').value = filters.areaRange;
-        }
-        if (filters.buildingAge) {
-          document.getElementById('building-age').value = filters.buildingAge;
-        }
-        if (filters.parkingAvailable) {
-          document.getElementById('parking-available').checked = filters.parkingAvailable;
-        }
-        if (filters.elevatorAvailable) {
-          document.getElementById('elevator-available').checked = filters.elevatorAvailable;
+
+        if (filters.hideHighFloor) {
+          const highFloorCheckbox = document.getElementById('hide-high-floor');
+          const highFloorOption = highFloorCheckbox.closest('.nlf-floor-filter-option');
+          if (highFloorCheckbox && highFloorOption) {
+            highFloorCheckbox.checked = true;
+            highFloorOption.classList.add('checked');
+          }
         }
         
         this.filters = filters;
+        
+        // 저장된 필터가 있으면 자동으로 적용 (실시간 방식 사용)
+        if (filters.hideBasement || filters.hideHighFloor) {
+          setTimeout(() => this.applyFiltersRealtime(), 500);
+        }
       }
     });
   }
@@ -262,7 +454,113 @@ class NaverLandFilter {
       }
     }, 3000);
   }
+
+  // MutationObserver 설정 - 새로 추가되는 매물 감지
+  setupMutationObserver() {
+    console.log('[NLF] MutationObserver 설정 중...');
+    
+    // 매물 리스트 컨테이너 찾기
+    const listContainer = document.querySelector('#listContents1 > div > div > div:nth-child(1)') || 
+                         document.querySelector('.item_list') ||
+                         document.querySelector('#listContents1');
+    
+    if (!listContainer) {
+      console.warn('[NLF] 매물 리스트 컨테이너를 찾을 수 없습니다. 3초 후 재시도합니다.');
+      setTimeout(() => this.setupMutationObserver(), 3000);
+      return;
+    }
+
+    console.log('[NLF] 매물 리스트 컨테이너 발견:', listContainer);
+
+    // MutationObserver 콜백 함수
+    const observerCallback = (mutations) => {
+      let hasNewListings = false;
+      
+      mutations.forEach(mutation => {
+        // 새로 추가된 노드들 확인
+        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+          mutation.addedNodes.forEach(node => {
+            // 매물 항목인지 확인 (클래스명이 'item'인 요소)
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              if (node.classList && node.classList.contains('item')) {
+                hasNewListings = true;
+                console.log('[NLF] 새로운 매물 감지:', node);
+              }
+              // 또는 새로 추가된 노드 내부에 매물 항목이 있는지 확인
+              else if (node.querySelectorAll) {
+                const newItems = node.querySelectorAll('.item');
+                if (newItems.length > 0) {
+                  hasNewListings = true;
+                  console.log(`[NLF] 새로운 매물 ${newItems.length}개 감지`);
+                }
+              }
+            }
+          });
+        }
+      });
+
+      // 새로운 매물이 추가되었으면 필터 적용
+      if (hasNewListings && this.hasActiveFilters()) {
+        console.log('[NLF] 새로 추가된 매물에 필터 적용 중...');
+        setTimeout(() => {
+          this.filterListings();
+          this.updateFilterCount();
+        }, 100); // 짧은 지연으로 DOM 업데이트 완료 보장
+      }
+    };
+
+    // MutationObserver 생성 및 시작
+    this.mutationObserver = new MutationObserver(observerCallback);
+    
+    // 관찰 옵션: 자식 노드 추가/제거와 하위 트리 변경 감지
+    const observerOptions = {
+      childList: true,        // 직접 자식 노드의 추가/제거 감지
+      subtree: true,          // 모든 하위 노드의 변경 감지
+      attributes: false,      // 속성 변경은 감지하지 않음
+      characterData: false    // 텍스트 변경은 감지하지 않음
+    };
+
+    this.mutationObserver.observe(listContainer, observerOptions);
+    console.log('[NLF] MutationObserver가 시작되었습니다.');
+  }
+
+  // 활성화된 필터가 있는지 확인
+  hasActiveFilters() {
+    return this.filters && (this.filters.hideBasement || this.filters.hideHighFloor);
+  }
+
+  // 필터 적용 후 숨겨진 매물 개수 업데이트
+  updateFilterCount() {
+    const totalListings = document.querySelectorAll('.item_list .item').length;
+    const hiddenListings = document.querySelectorAll('.item_list .item.naver-land-hidden').length;
+    const visibleListings = totalListings - hiddenListings;
+    
+    console.log(`[NLF] 필터 결과: 전체 ${totalListings}개, 숨김 ${hiddenListings}개, 표시 ${visibleListings}개`);
+    
+    // 상태 표시기 업데이트
+    const activeFilters = [];
+    if (this.filters.hideBasement) activeFilters.push('반지하 및 지하층');
+    if (this.filters.hideHighFloor) activeFilters.push('고층');
+    
+    if (activeFilters.length > 0 && this.statusIndicator) {
+      this.statusIndicator.textContent = `필터 적용중: ${activeFilters.join(', ')} (${visibleListings}/${totalListings}개 표시)`;
+      this.statusIndicator.classList.add('active');
+    }
+  }
+
+  // MutationObserver 정리 (페이지 언로드 시)
+  cleanup() {
+    if (this.mutationObserver) {
+      this.mutationObserver.disconnect();
+      console.log('[NLF] MutationObserver가 정리되었습니다.');
+    }
+  }
 }
 
 // 확장 프로그램 초기화
 const naverLandFilter = new NaverLandFilter();
+
+// 페이지 언로드 시 정리
+window.addEventListener('beforeunload', () => {
+  naverLandFilter.cleanup();
+});
