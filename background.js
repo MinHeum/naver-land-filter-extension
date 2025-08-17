@@ -6,7 +6,6 @@ class BackgroundService {
 
   init() {
     this.bindEvents();
-    this.setupContextMenus();
   }
 
   bindEvents() {
@@ -43,36 +42,6 @@ class BackgroundService {
     });
   }
 
-  setupContextMenus() {
-    // 우클릭 메뉴 설정
-    chrome.contextMenus.create({
-      id: 'naver-land-filter',
-      title: '🔍 Naver Land Filter',
-      contexts: ['page'],
-      documentUrlPatterns: ['https://new.land.naver.com/*']
-    });
-
-    chrome.contextMenus.create({
-      id: 'toggle-filter-panel',
-      title: '필터 패널 토글',
-      contexts: ['page'],
-      documentUrlPatterns: ['https://new.land.naver.com/*'],
-      parentId: 'naver-land-filter'
-    });
-
-    chrome.contextMenus.create({
-      id: 'reset-filters',
-      title: '필터 초기화',
-      contexts: ['page'],
-      documentUrlPatterns: ['https://new.land.naver.com/*'],
-      parentId: 'naver-land-filter'
-    });
-
-    // 우클릭 메뉴 클릭 이벤트
-    chrome.contextMenus.onClicked.addListener((info, tab) => {
-      this.handleContextMenuClick(info, tab);
-    });
-  }
 
   onFirstInstall() {
     console.log('Naver Land Filter 확장 프로그램이 설치되었습니다!');
@@ -183,23 +152,7 @@ class BackgroundService {
     }
   }
 
-  handleContextMenuClick(info, tab) {
-    switch (info.menuItemId) {
-      case 'toggle-filter-panel':
-        chrome.tabs.sendMessage(tab.id, {
-          action: 'toggleFilterPanel',
-          data: {}
-        });
-        break;
-
-      case 'reset-filters':
-        chrome.tabs.sendMessage(tab.id, {
-          action: 'resetFilters',
-          data: {}
-        });
-        break;
-    }
-  }
+ 
 
   // 알림 표시
   showNotification(title, message) {

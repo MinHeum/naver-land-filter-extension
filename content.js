@@ -112,13 +112,11 @@ class NaverLandFilter {
       
       if (basementCheckbox) {
         basementCheckbox.style.cssText = checkboxStyle;
-        console.log('[NLF] 지하층 체크박스 스타일이 강제로 적용되었습니다.');
-      }
+       }
       
       if (highFloorCheckbox) {
         highFloorCheckbox.style.cssText = checkboxStyle;
-        console.log('[NLF] 고층 체크박스 스타일이 강제로 적용되었습니다.');
-      }
+       }
     }, 100);
 
     this.bindEvents(filterPanel);
@@ -402,41 +400,105 @@ class NaverLandFilter {
       hideHighFloor: document.getElementById('hide-high-floor') ? document.getElementById('hide-high-floor').checked : false
     };
     
-    chrome.storage.local.set({ 'naverLandFilters': filtersToSave });
+    // Chrome extension context 유효성 검사
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      try {
+        chrome.storage.local.set({ 'naverLandFilters': filtersToSave }, () => {
+          if (chrome.runtime.lastError) {
+            console.warn('[NLF] 필터 저장 실패:', chrome.runtime.lastError.message);
+            // 로컬 스토리지 대안 사용
+            this.saveFiltersToLocalStorage(filtersToSave);
+          } else {
+            console.log('[NLF] 필터가 성공적으로 저장되었습니다.');
+          }
+        });
+      } catch (error) {
+        console.warn('[NLF] Chrome storage API 사용 불가:', error.message);
+        // 로컬 스토리지 대안 사용
+        this.saveFiltersToLocalStorage(filtersToSave);
+      }
+    } else {
+      // Chrome extension이 비활성화된 경우 로컬 스토리지 사용
+      this.saveFiltersToLocalStorage(filtersToSave);
+    }
+  }
+
+  // 로컬 스토리지 대안 저장 방법
+  saveFiltersToLocalStorage(filters) {
+    try {
+      localStorage.setItem('naverLandFilters', JSON.stringify(filters));
+      console.log('[NLF] 필터가 로컬 스토리지에 저장되었습니다.');
+    } catch (error) {
+      console.error('[NLF] 로컬 스토리지 저장 실패:', error);
+    }
   }
 
   loadSavedFilters() {
-    // 저장된 필터 설정을 불러오기
-    chrome.storage.local.get(['naverLandFilters'], (result) => {
-      if (result.naverLandFilters) {
-        const filters = result.naverLandFilters;
-        
-        if (filters.hideBasement) {
-          const basementCheckbox = document.getElementById('hide-basement');
-          const basementOption = basementCheckbox.closest('.nlf-floor-filter-option');
-          if (basementCheckbox && basementOption) {
-            basementCheckbox.checked = true;
-            basementOption.classList.add('checked');
+    // Chrome extension context 유효성 검사
+    if (typeof chrome !== 'undefined' && chrome.storage) {
+      try {
+        chrome.storage.local.get(['naverLandFilters'], (result) => {
+          if (chrome.runtime.lastError) {
+            console.warn('[NLF] 필터 불러오기 실패:', chrome.runtime.lastError.message);
+            // 로컬 스토리지 대안 사용
+            this.loadFiltersFromLocalStorage();
+          } else {
+            this.processLoadedFilters(result.naverLandFilters);
           }
-        }
+        });
+      } catch (error) {
+        console.warn('[NLF] Chrome storage API 사용 불가:', error.message);
+        // 로컬 스토리지 대안 사용
+        this.loadFiltersFromLocalStorage();
+      }
+    } else {
+      // Chrome extension이 비활성화된 경우 로컬 스토리지 사용
+      this.loadFiltersFromLocalStorage();
+    }
+  }
 
-        if (filters.hideHighFloor) {
-          const highFloorCheckbox = document.getElementById('hide-high-floor');
-          const highFloorOption = highFloorCheckbox.closest('.nlf-floor-filter-option');
-          if (highFloorCheckbox && highFloorOption) {
-            highFloorCheckbox.checked = true;
-            highFloorOption.classList.add('checked');
-          }
-        }
-        
-        this.filters = filters;
-        
-        // 저장된 필터가 있으면 자동으로 적용 (실시간 방식 사용)
-        if (filters.hideBasement || filters.hideHighFloor) {
-          setTimeout(() => this.applyFiltersRealtime(), 500);
+  // 로컬 스토리지 대안 불러오기 방법
+  loadFiltersFromLocalStorage() {
+    try {
+      const savedFilters = localStorage.getItem('naverLandFilters');
+      if (savedFilters) {
+        const filters = JSON.parse(savedFilters);
+        this.processLoadedFilters(filters);
+        console.log('[NLF] 필터가 로컬 스토리지에서 불러와졌습니다.');
+      }
+    } catch (error) {
+      console.error('[NLF] 로컬 스토리지 불러오기 실패:', error);
+    }
+  }
+
+  // 불러온 필터 처리 공통 함수
+  processLoadedFilters(filters) {
+    if (filters) {
+      if (filters.hideBasement) {
+        const basementCheckbox = document.getElementById('hide-basement');
+        const basementOption = basementCheckbox?.closest('.nlf-floor-filter-option');
+        if (basementCheckbox && basementOption) {
+          basementCheckbox.checked = true;
+          basementOption.classList.add('checked');
         }
       }
-    });
+
+      if (filters.hideHighFloor) {
+        const highFloorCheckbox = document.getElementById('hide-high-floor');
+        const highFloorOption = highFloorCheckbox?.closest('.nlf-floor-filter-option');
+        if (highFloorCheckbox && highFloorOption) {
+          highFloorCheckbox.checked = true;
+          highFloorOption.classList.add('checked');
+        }
+      }
+      
+      this.filters = filters;
+      
+      // 저장된 필터가 있으면 자동으로 적용 (실시간 방식 사용)
+      if (filters.hideBasement || filters.hideHighFloor) {
+        setTimeout(() => this.applyFiltersRealtime(), 500);
+      }
+    }
   }
 
   showNotification(message) {
