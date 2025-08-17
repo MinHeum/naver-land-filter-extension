@@ -1,0 +1,221 @@
+/* 네이버 부동산 필터 확장 프로그램 스타일 */
+.naver-land-filter-panel {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  width: 300px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+}
+
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #03c75a 0%, #02a94f 100%);
+  color: white;
+  border-radius: 8px 8px 0 0;
+}
+
+.filter-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.filter-toggle {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.filter-toggle:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.filter-content {
+  padding: 20px;
+}
+
+.filter-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.filter-row:last-of-type {
+  border-bottom: none;
+  margin-bottom: 20px;
+}
+
+.filter-row label {
+  font-weight: 500;
+  color: #333;
+  flex: 1;
+}
+
+.filter-row select {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.filter-row select:focus {
+  outline: none;
+  border-color: #03c75a;
+  box-shadow: 0 0 0 2px rgba(3, 199, 90, 0.1);
+}
+
+.filter-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #03c75a;
+  cursor: pointer;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.apply-btn, .reset-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.apply-btn {
+  background: #03c75a;
+  color: white;
+}
+
+.apply-btn:hover {
+  background: #02a94f;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(3, 199, 90, 0.3);
+}
+
+.reset-btn {
+  background: #f8f9fa;
+  color: #6c757d;
+  border: 1px solid #dee2e6;
+}
+
+.reset-btn:hover {
+  background: #e9ecef;
+  color: #495057;
+}
+
+/* 알림 스타일 */
+.naver-land-filter-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #03c75a;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10001;
+  font-size: 14px;
+  font-weight: 500;
+  animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .naver-land-filter-panel {
+    position: fixed;
+    top: auto;
+    bottom: 20px;
+    right: 20px;
+    width: 280px;
+  }
+  
+  .filter-content {
+    padding: 15px;
+  }
+  
+  .filter-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .filter-row select {
+    width: 100%;
+    flex: none;
+  }
+}
+
+/* 다크 모드 지원 */
+@media (prefers-color-scheme: dark) {
+  .naver-land-filter-panel {
+    background: #2d2d2d;
+    border-color: #444;
+    color: #e0e0e0;
+  }
+  
+  .filter-row label {
+    color: #e0e0e0;
+  }
+  
+  .filter-row select {
+    background: #3d3d3d;
+    border-color: #555;
+    color: #e0e0e0;
+  }
+  
+  .filter-row {
+    border-bottom-color: #444;
+  }
+  
+  .reset-btn {
+    background: #3d3d3d;
+    color: #b0b0b0;
+    border-color: #555;
+  }
+  
+  .reset-btn:hover {
+    background: #4d4d4d;
+    color: #d0d0d0;
+  }
+}

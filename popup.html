@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Naver Land Filter</title>
+  <style>
+    body {
+      width: 320px;
+      min-height: 400px;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f8f9fa;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #03c75a 0%, #02a94f 100%);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .header h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .header p {
+      margin: 5px 0 0 0;
+      font-size: 12px;
+      opacity: 0.9;
+    }
+    
+    .content {
+      padding: 20px;
+    }
+    
+    .status {
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    .status.active {
+      border-color: #03c75a;
+      background: #f0fff4;
+    }
+    
+    .status.inactive {
+      border-color: #dc3545;
+      background: #fff5f5;
+    }
+    
+    .status-icon {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    
+    .status-text {
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+    
+    .status-desc {
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .quick-actions {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .action-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .primary-btn {
+      background: #03c75a;
+      color: white;
+    }
+    
+    .primary-btn:hover {
+      background: #02a94f;
+    }
+    
+    .secondary-btn {
+      background: #6c757d;
+      color: white;
+    }
+    
+    .secondary-btn:hover {
+      background: #5a6268;
+    }
+    
+    .info-section {
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 15px;
+    }
+    
+    .info-section h3 {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      color: #333;
+    }
+    
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 12px;
+    }
+    
+    .info-item:last-child {
+      border-bottom: none;
+    }
+    
+    .info-label {
+      color: #666;
+    }
+    
+    .info-value {
+      font-weight: 500;
+      color: #333;
+    }
+    
+    .footer {
+      padding: 15px 20px;
+      text-align: center;
+      border-top: 1px solid #e0e0e0;
+      background: white;
+    }
+    
+    .footer a {
+      color: #03c75a;
+      text-decoration: none;
+      font-size: 12px;
+    }
+    
+    .footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🔍 Naver Land Filter</h1>
+    <p>네이버 부동산 지도 필터링 도구</p>
+  </div>
+  
+  <div class="content">
+    <div class="status" id="status">
+      <div class="status-icon">⏳</div>
+      <div class="status-text">확인 중...</div>
+      <div class="status-desc">페이지 상태를 확인하고 있습니다</div>
+    </div>
+    
+    <div class="quick-actions">
+      <button class="action-btn primary-btn" id="refresh-btn">새로고침</button>
+      <button class="action-btn secondary-btn" id="settings-btn">설정</button>
+    </div>
+    
+    <div class="info-section">
+      <h3>📊 필터 정보</h3>
+      <div class="info-item">
+        <span class="info-label">활성 필터:</span>
+        <span class="info-value" id="active-filters">0개</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">저장된 설정:</span>
+        <span class="info-value" id="saved-settings">있음</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">마지막 업데이트:</span>
+        <span class="info-value" id="last-update">-</span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="footer">
+    <a href="#" id="help-link">도움말</a> | 
+    <a href="#" id="feedback-link">피드백</a>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
